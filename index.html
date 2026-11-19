@@ -1,0 +1,539 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cap</title>
+<meta name="theme-color" content="#F6F5F1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Cap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230E0F12'/%3E%3Ccircle cx='12' cy='12' r='7' fill='none' stroke='%23F07A3A' stroke-width='2'/%3E%3Cpath d='M14.8 9.2l-1.6 4-4 1.6 1.6-4z' fill='%23F07A3A'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F6F5F1; --card: #FFFFFF; --line: #E4E2DA; --cell: #ECEAE3;
+    --text: #16181D; --muted: #5B606B; --accent: #C2410C; --on-accent: #FFFFFF;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font-family: Inter, system-ui, sans-serif;
+    padding: env(safe-area-inset-top) 20px calc(56px + env(safe-area-inset-bottom));
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 28px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 24px 0 4px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px; letter-spacing: -0.02em; }
+  .date { font-size: 14px; color: var(--muted); }
+
+  .defi-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+  .label { margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .streak { display: flex; align-items: baseline; gap: 12px; margin-top: 6px; }
+  .streak-num { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(88px, 22vw, 120px); line-height: 0.9; letter-spacing: -0.04em; color: var(--accent); }
+  .streak-unit { font-size: 18px; }
+  .daycount { font-family: 'Space Grotesk', sans-serif; font-size: 18px; font-weight: 500; color: var(--muted); }
+
+  .grid { display: grid; grid-template-columns: repeat(15, minmax(0, 1fr)); gap: 6px; margin-top: 22px; }
+  @media (max-width: 480px) { .grid { grid-template-columns: repeat(10, minmax(0, 1fr)); } }
+  .cell {
+    aspect-ratio: 1; border-radius: 6px; display: flex; align-items: center; justify-content: center;
+    font: 600 11px Inter, sans-serif; padding: 0; border: 2px solid var(--cell); background: var(--cell); color: var(--muted);
+  }
+  button.cell { cursor: pointer; }
+  .cell.done { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .cell.today { background: var(--card); border-color: var(--accent); color: var(--accent); }
+  .cell.today.done { background: var(--accent); color: var(--on-accent); }
+  .cell.missed { background: var(--bg); border-color: var(--line); color: var(--muted); }
+
+  .validate {
+    margin-top: 22px; min-height: 52px; padding: 0 26px; border-radius: 12px; cursor: pointer;
+    font: 600 16px Inter, sans-serif; background: transparent; color: var(--accent); border: 2px solid var(--accent);
+  }
+  .validate[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+
+  figure { margin: 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 36px 0 32px; display: flex; flex-direction: column; gap: 18px; }
+  .qmark { font-family: 'Instrument Serif', Georgia, serif; font-size: 96px; line-height: 0.5; height: 40px; color: var(--accent); }
+  blockquote { margin: 0; padding-left: 24px; border-left: 3px solid var(--accent); }
+  blockquote p { margin: 0; font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: clamp(28px, 6vw, 36px); line-height: 1.25; }
+  figcaption { padding-left: 27px; font-size: 15px; color: var(--muted); }
+  figcaption strong { color: var(--text); font-weight: 600; }
+
+  h2 { margin: 0 0 16px; font-family: 'Space Grotesk', sans-serif; font-size: 26px; font-weight: 700; letter-spacing: -0.01em; }
+  ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+  li { display: flex; align-items: center; gap: 14px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px 12px 12px; }
+  .check {
+    width: 44px; height: 44px; flex: none; border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; padding: 0; background: transparent; border: 2px solid #8A8F99;
+  }
+  .check svg { display: none; }
+  .check[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); }
+  .check[aria-pressed="true"] svg { display: block; }
+  .task {
+    flex: 1 1 auto; min-width: 0; min-height: 44px; background: transparent; border: none; padding: 0;
+    font: 500 18px Inter, sans-serif; color: var(--text); outline-offset: 4px;
+  }
+  .task::placeholder, .dl-form input::placeholder { color: #767B85; }
+  li.is-done .task { color: var(--muted); text-decoration: line-through; }
+
+  .pill { flex: none; min-width: 96px; text-align: center; padding: 6px 10px; border-radius: 999px; font: 600 13px Inter, sans-serif; background: var(--cell); color: #3F434B; }
+  .pill.soon { background: #FBE3D6; color: #9A3412; }
+  .dl-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .dl-title { font-size: 16px; font-weight: 500; overflow-wrap: anywhere; }
+  .dl-date { font-size: 13px; color: var(--muted); }
+  .del { width: 44px; height: 44px; flex: none; border: none; background: transparent; border-radius: 10px; cursor: pointer; color: var(--muted); display: flex; align-items: center; justify-content: center; }
+  .del:hover { background: var(--cell); color: var(--text); }
+  .empty { margin: 0 0 4px; font-size: 15px; color: var(--muted); }
+  .dl-form { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+  .dl-form input { min-height: 48px; border: 1px solid var(--line); border-radius: 12px; background: var(--card); padding: 0 14px; font: 500 16px Inter, sans-serif; color: var(--text); }
+  .dl-form input[type="text"] { flex: 1 1 220px; min-width: 0; }
+  .dl-form input[type="date"] { flex: 0 1 180px; }
+  .del:hover { background: #FBE3D6; color: var(--accent); }
+
+  /* ---------- animations ---------- */
+  #fx { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 50; }
+  .particle { position: absolute; left: 0; top: 0; line-height: 1; will-change: transform, opacity; user-select: none; }
+  .toast {
+    position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); z-index: 60;
+    transform: translate(-50%, 160%); opacity: 0;
+    background: var(--text); color: var(--card); padding: 14px 22px; border-radius: 999px;
+    font: 600 16px Inter, sans-serif; box-shadow: 0 12px 32px rgba(22, 24, 29, 0.22);
+    white-space: nowrap; max-width: calc(100vw - 32px); overflow: hidden; text-overflow: ellipsis;
+    transition: transform 0.5s cubic-bezier(0.2, 1.5, 0.4, 1), opacity 0.25s;
+  }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+  .toast.big { background: var(--accent); color: var(--on-accent); font-size: 19px; padding: 18px 28px; }
+  .streak-num { display: inline-block; transform-origin: 20% 90%; }
+  @keyframes pop { 0% { transform: scale(0.4) rotate(-12deg); } 55% { transform: scale(1.35) rotate(6deg); } 100% { transform: scale(1); } }
+  @keyframes bump { 0% { transform: scale(1); } 35% { transform: scale(1.4) rotate(-5deg); } 65% { transform: scale(0.95) rotate(2deg); } 100% { transform: scale(1); } }
+  @keyframes press { 0% { transform: scale(1); } 30% { transform: scale(0.92); } 70% { transform: scale(1.06); } 100% { transform: scale(1); } }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+  @keyframes leave { 30% { transform: scale(1.02); } 100% { opacity: 0; transform: translateX(60px) scale(0.94); } }
+  @keyframes glow { 0% { box-shadow: 0 0 0 0 rgba(194, 65, 12, 0.45); } 100% { box-shadow: 0 0 0 18px rgba(194, 65, 12, 0); } }
+  .cell.pop { animation: pop 0.55s cubic-bezier(0.2, 1.6, 0.4, 1); position: relative; z-index: 1; }
+  .streak-num.bump { animation: bump 0.7s cubic-bezier(0.2, 1.6, 0.4, 1); }
+  .validate.press, .check.press { animation: press 0.4s ease, glow 0.7s ease-out; }
+  .check svg path { stroke-dasharray: 24; stroke-dashoffset: 24; }
+  .check[aria-pressed="true"] svg path { animation: draw 0.35s 0.05s ease forwards; }
+  li.leaving { animation: leave 0.5s ease forwards; }
+  @media (prefers-reduced-motion: reduce) {
+    .cell.pop, .streak-num.bump, .validate.press, .check.press, li.leaving { animation: none; }
+    .check[aria-pressed="true"] svg path { animation: none; stroke-dashoffset: 0; }
+    .toast { transition: opacity 0.2s; }
+  }
+
+  .add { min-height: 48px; padding: 0 22px; border-radius: 12px; border: none; background: var(--text); color: var(--card); font: 600 16px Inter, sans-serif; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M15.5 8.5l-2 5-5 2 2-5z"></path></svg>
+      Cap
+    </div>
+    <span class="date" id="date"></span>
+  </header>
+
+  <section aria-labelledby="defi-title">
+    <div class="defi-top">
+      <div>
+        <h1 class="label" id="defi-title">Défi 30 jours</h1>
+        <div class="streak"><span class="streak-num" id="streak">0</span><span class="streak-unit" id="streak-unit">jour d'affilée</span></div>
+      </div>
+      <span class="daycount" id="daycount">1 / 30</span>
+    </div>
+    <div class="grid" id="grid" aria-label="Calendrier du défi"></div>
+    <button type="button" class="validate" id="validate" aria-pressed="false">Valider aujourd'hui</button>
+  </section>
+
+  <figure aria-label="Citation du jour">
+    <span class="qmark" aria-hidden="true">“</span>
+    <blockquote><p id="quote"></p></blockquote>
+    <figcaption>— <strong id="author"></strong><span id="work"></span></figcaption>
+  </figure>
+
+  <section aria-labelledby="todo-title">
+    <h2 id="todo-title">Deux priorités</h2>
+    <ol id="tasks"></ol>
+  </section>
+
+  <section aria-labelledby="dl-title">
+    <h2 id="dl-title">Échéances</h2>
+    <p class="empty" id="dl-empty">Aucune échéance pour l'instant.</p>
+    <ol id="deadlines"></ol>
+    <form class="dl-form" id="dl-form">
+      <input type="text" id="dl-new-title" aria-label="Nouvelle échéance" placeholder="Objectif" required>
+      <input type="date" id="dl-new-date" aria-label="Date de l'échéance" required>
+      <button type="submit" class="add">Ajouter</button>
+    </form>
+  </section>
+</div>
+
+<div id="fx" aria-hidden="true"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  // Date de début du défi (AAAA-MM-JJ). Change-la pour relancer un nouveau défi.
+  var START = '2026-11-19';
+  var KEY = 'cap-v1';
+
+  var QUOTES = [
+    ['Qui a commencé a fait la moitié du travail : ose être sage, commence !', 'Horace', 'Épîtres'],
+    ['Tout le malheur des hommes vient d’une seule chose, qui est de ne savoir pas demeurer en repos dans une chambre.', 'Blaise Pascal', 'Pensées'],
+    ['Toute habitude, toute faculté se maintient et s’accroît par les actes qui lui correspondent.', 'Épictète', 'Entretiens'],
+    ['Nous souffrons plus souvent en imagination que dans la réalité.', 'Sénèque', 'Lettres à Lucilius'],
+    ['Résiste dès le début : le remède vient trop tard quand le mal s’est fortifié par de longs délais.', 'Ovide', 'Les Remèdes à l’amour'],
+    ['Nous devenons justes en accomplissant des actions justes, tempérants en accomplissant des actions tempérées, courageux en accomplissant des actes de courage.', 'Aristote', 'Éthique à Nicomaque'],
+    ['Être occupé est une forme de paresse.', 'Tim Ferriss', 'La Semaine de 4 heures'],
+    ['Celui qui est partout n’est nulle part.', 'Sénèque', 'Lettres à Lucilius'],
+    ['Vaincre les autres, c’est être fort ; se vaincre soi-même, c’est être puissant.', 'Lao Tseu', 'Tao Te King'],
+    ['Nous avons plus de force que de volonté ; et c’est souvent pour nous excuser à nous-mêmes que nous nous imaginons que les choses sont impossibles.', 'La Rochefoucauld', 'Maximes'],
+    ['Qui craint de souffrir, il souffre déjà de ce qu’il craint.', 'Montaigne', 'Essais'],
+    ['Ce n’est pas parce que les choses sont difficiles que nous n’osons pas, c’est parce que nous n’osons pas qu’elles sont difficiles.', 'Sénèque', 'Lettres à Lucilius'],
+    ['L’obstacle à l’action fait progresser l’action. Ce qui barre la route devient la route.', 'Marc Aurèle', 'Pensées pour moi-même'],
+    ['Nul n’est libre s’il n’est maître de lui-même.', 'Épictète', ''],
+    ['Ce n’est pas l’ajout quotidien, mais la réduction quotidienne : élague l’inessentiel.', 'Bruce Lee', 'Le Tao du Jeet Kune Do'],
+    ['Nous n’avons pas trop peu de temps, mais nous en perdons beaucoup.', 'Sénèque', 'De la brièveté de la vie'],
+    ['Si l’on a son propre pourquoi de la vie, on s’accommode de presque tous les comment.', 'Friedrich Nietzsche', 'Crépuscule des idoles'],
+    ['Ce qui trouble les hommes, ce ne sont pas les choses, mais les jugements qu’ils portent sur les choses.', 'Épictète', 'Manuel'],
+    ['Se commander à soi-même est le plus grand des pouvoirs.', 'Sénèque', 'Lettres à Lucilius'],
+    ['La discipline est le pont entre les objectifs et leur accomplissement.', 'Jim Rohn', ''],
+    ['Un voyage de mille lieues commence par un premier pas.', 'Lao Tseu', 'Tao Te King'],
+    ['Rien de grand ne naît tout d’un coup, pas même le raisin ou la figue.', 'Épictète', 'Entretiens'],
+    ['Il n’y a pas de vent favorable pour celui qui ne sait où il va.', 'Sénèque', 'Lettres à Lucilius'],
+    ['La plus grande chose du monde, c’est de savoir être à soi.', 'Montaigne', 'Essais'],
+    ['Ne discute plus de ce que doit être un homme de bien : sois-le.', 'Marc Aurèle', 'Pensées pour moi-même'],
+    ['Pendant qu’on la remet à plus tard, la vie passe.', 'Sénèque', 'Lettres à Lucilius'],
+    ['Le caractère d’un homme, c’est son destin.', 'Héraclite', 'Fragments'],
+    ['Ce qui ne me tue pas me rend plus fort.', 'Friedrich Nietzsche', 'Crépuscule des idoles'],
+    ['Hâte-toi de vivre, et compte chaque jour pour une vie.', 'Sénèque', 'Lettres à Lucilius'],
+    ['Deviens ce que tu es.', 'Pindare', 'Pythiques']
+  ];
+
+  // ---------- dates ----------
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function toStr(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function parse(s) { var p = s.split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+  function addDays(s, n) { var d = parse(s); d.setDate(d.getDate() + n); return toStr(d); }
+  function diff(a, b) { return Math.round((parse(b) - parse(a)) / 86400000); }
+  function today() { return toStr(new Date()); }
+
+  // ---------- sauvegarde ----------
+  function load() {
+    var s = null;
+    try { s = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
+    if (!s || typeof s !== 'object') s = {};
+    if (!Array.isArray(s.validated)) s.validated = [];
+    if (!Array.isArray(s.tasks) || s.tasks.length !== 2) s.tasks = [{ text: '', done: false }, { text: '', done: false }];
+    if (!s.tasksDate) s.tasksDate = today();
+    if (!Array.isArray(s.deadlines)) s.deadlines = [];
+    return s;
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+  var state = load();
+
+  // Nouveau jour : on décoche les priorités (le texte reste, à toi de le changer).
+  function rollover() {
+    var t = today();
+    if (state.tasksDate !== t) {
+      state.tasks.forEach(function (x) { x.done = false; });
+      state.tasksDate = t;
+      save();
+    }
+  }
+
+  function isValidated(d) { return state.validated.indexOf(d) !== -1; }
+
+  // ---------- effets ----------
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function buzz(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+  function replay(el, cls) { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+
+  // Explosion d'emojis depuis un point de l'écran
+  function burst(rect, emojis, count, power) {
+    var fx = document.getElementById('fx');
+    if (reduce || !fx || !fx.animate) return;
+    var cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+    for (var i = 0; i < count; i++) {
+      var p = document.createElement('span');
+      p.className = 'particle';
+      p.textContent = pick(emojis);
+      p.style.fontSize = rnd(18, 34) + 'px';
+      fx.appendChild(p);
+      var angle = rnd(-Math.PI * 0.95, -Math.PI * 0.05);
+      var dist = power * rnd(0.45, 1.15);
+      var dx = Math.cos(angle) * dist, dy = Math.sin(angle) * dist;
+      var rot = rnd(-260, 260);
+      var a = p.animate([
+        { transform: 'translate(' + cx + 'px,' + cy + 'px) translate(-50%,-50%) scale(0.2)', opacity: 1 },
+        { transform: 'translate(' + (cx + dx) + 'px,' + (cy + dy) + 'px) translate(-50%,-50%) scale(1.1) rotate(' + rot / 2 + 'deg)', opacity: 1, offset: 0.45 },
+        { transform: 'translate(' + (cx + dx * 1.25) + 'px,' + (cy + dy + rnd(140, 280)) + 'px) translate(-50%,-50%) scale(0.8) rotate(' + rot + 'deg)', opacity: 0 }
+      ], { duration: rnd(1000, 1600), easing: 'cubic-bezier(.15,.75,.35,1)' });
+      a.onfinish = (function (el) { return function () { el.remove(); }; })(p);
+    }
+  }
+
+  // Pluie d'emojis sur tout l'écran (pour les grands paliers)
+  function rain(emojis, count) {
+    var fx = document.getElementById('fx');
+    if (reduce || !fx || !fx.animate) return;
+    var w = window.innerWidth, h = window.innerHeight;
+    for (var i = 0; i < count; i++) {
+      var p = document.createElement('span');
+      p.className = 'particle';
+      p.textContent = pick(emojis);
+      p.style.fontSize = rnd(22, 44) + 'px';
+      fx.appendChild(p);
+      var x = rnd(0, w), drift = rnd(-120, 120), rot = rnd(-360, 360);
+      var a = p.animate([
+        { transform: 'translate(' + x + 'px,-60px) rotate(0deg)', opacity: 1 },
+        { transform: 'translate(' + (x + drift) + 'px,' + (h + 60) + 'px) rotate(' + rot + 'deg)', opacity: 0.9 }
+      ], { duration: rnd(1800, 3200), delay: rnd(0, 900), easing: 'cubic-bezier(.3,.1,.7,1)', fill: 'backwards' });
+      a.onfinish = (function (el) { return function () { el.remove(); }; })(p);
+    }
+  }
+
+  var toastTimer = null;
+  function toast(msg, big) {
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = 'toast' + (big ? ' big' : '');
+    void t.offsetWidth;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.classList.remove('show'); }, big ? 3800 : 2400);
+  }
+
+  var CHEERS = [
+    'Jour {n} validé 🔥', 'Promesse tenue 💪', 'Un jour de plus dans la série ⭐',
+    'Tu tiens parole ✊', 'Solide. On continue 🚀', 'La série grandit 🔥', 'Encore une victoire 🏅'
+  ];
+  var MILESTONES = {
+    3: ['3 jours d’affilée. Ça démarre 🔥', ['🔥', '⚡', '💪']],
+    7: ['Une semaine entière 🏆', ['🏆', '🔥', '⭐', '🎉']],
+    10: ['10 jours. Un tiers du défi 💥', ['💥', '🔥', '⚡']],
+    14: ['Deux semaines. Respect 🚀', ['🚀', '⭐', '🔥', '🎉']],
+    21: ['21 jours. Plus rien ne t’arrête 💎', ['💎', '✨', '🔥', '🏆']],
+    30: ['30 jours. Défi réussi, tu as tenu parole 👑', ['👑', '🏆', '🎉', '💎', '🔥', '⭐']]
+  };
+
+  function toggleDay(d, rect) {
+    var i = state.validated.indexOf(d);
+    var nowOn = i === -1;
+    if (nowOn) state.validated.push(d); else state.validated.splice(i, 1);
+    save();
+    var streak = renderDefi(nowOn ? d : null);
+    if (!nowOn) { buzz(8); return; }
+
+    replay(document.getElementById('streak'), 'bump');
+    var n = Math.min(30, Math.max(1, diff(START, d) + 1));
+    var m = MILESTONES[streak];
+    if (m && d === today()) {
+      burst(rect, m[1], 36, 260);
+      if (streak >= 7) rain(m[1], streak >= 30 ? 90 : 45);
+      toast(m[0], true);
+      buzz([30, 60, 30, 60, 80]);
+    } else {
+      burst(rect, ['🔥', '💪', '⭐', '✨', '🎉'], 24, 200);
+      toast(pick(CHEERS).replace('{n}', n));
+      buzz([15, 40, 15]);
+    }
+  }
+
+  // ---------- affichage ----------
+  var $ = function (id) { return document.getElementById(id); };
+
+  function renderDefi(popDay) {
+    var t = today();
+    var idx = Math.min(29, Math.max(0, diff(START, t)));
+
+    var raw = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    $('date').textContent = raw.charAt(0).toUpperCase() + raw.slice(1);
+    $('daycount').textContent = (idx + 1) + ' / 30';
+
+    // streak : jours validés d'affilée jusqu'à aujourd'hui (ou hier si aujourd'hui n'est pas encore validé)
+    var streak = 0;
+    var d = isValidated(t) ? t : addDays(t, -1);
+    while (isValidated(d) && diff(START, d) >= 0) { streak++; d = addDays(d, -1); }
+    $('streak').textContent = streak;
+    $('streak-unit').textContent = streak > 1 ? 'jours d’affilée' : 'jour d’affilée';
+
+    var grid = $('grid');
+    grid.innerHTML = '';
+    for (var i = 0; i < 30; i++) {
+      var day = addDays(START, i);
+      var past = diff(day, t) > 0;
+      var isToday = day === t;
+      var done = isValidated(day);
+      var el = document.createElement(past || isToday ? 'button' : 'div');
+      el.className = 'cell' + (done ? ' done' : '') + (isToday ? ' today' : '') + (past && !done ? ' missed' : '');
+      el.textContent = i + 1;
+      if (past || isToday) {
+        el.type = 'button';
+        el.setAttribute('aria-pressed', done ? 'true' : 'false');
+        el.setAttribute('aria-label', 'Jour ' + (i + 1) + (done ? ', validé' : ', non validé'));
+        el.addEventListener('click', (function (dd) { return function (e) { toggleDay(dd, e.currentTarget.getBoundingClientRect()); }; })(day));
+        if (popDay === day) el.classList.add('pop');
+      } else {
+        el.setAttribute('aria-hidden', 'true');
+      }
+      grid.appendChild(el);
+    }
+
+    var v = isValidated(t);
+    var btn = $('validate');
+    btn.setAttribute('aria-pressed', v ? 'true' : 'false');
+    btn.textContent = v ? 'Jour ' + (idx + 1) + ' validé 🔥' : 'Valider aujourd’hui';
+
+    var q = QUOTES[idx];
+    $('quote').textContent = '« ' + q[0] + ' »';
+    $('author').textContent = q[1];
+    $('work').textContent = q[2] ? ', ' : '';
+    if (q[2]) { var c = document.createElement('cite'); c.textContent = q[2]; $('work').appendChild(c); }
+    return streak;
+  }
+
+  function renderTasks() {
+    var ol = $('tasks');
+    ol.innerHTML = '';
+    state.tasks.forEach(function (task, k) {
+      var li = document.createElement('li');
+      if (task.done) li.className = 'is-done';
+
+      var check = document.createElement('button');
+      check.type = 'button';
+      check.className = 'check';
+      check.setAttribute('aria-pressed', task.done ? 'true' : 'false');
+      check.setAttribute('aria-label', 'Priorité ' + (k + 1) + ' faite');
+      check.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
+      check.addEventListener('click', function () {
+        task.done = !task.done;
+        save();
+        check.setAttribute('aria-pressed', task.done ? 'true' : 'false');
+        li.className = task.done ? 'is-done' : '';
+        if (!task.done) { buzz(8); return; }
+        replay(check, 'press');
+        var r = check.getBoundingClientRect();
+        if (state.tasks.every(function (x) { return x.done; })) {
+          burst(r, ['🎯', '✅', '✨', '🏁'], 30, 230);
+          toast('Les deux priorités sont faites 🎯', true);
+          buzz([20, 50, 20, 50, 40]);
+        } else {
+          burst(r, ['✅', '✨', '⚡'], 14, 120);
+          toast(pick(['Une de faite ✅', 'Bien joué ⚡', 'Coché ✨']));
+          buzz(15);
+        }
+      });
+
+      var input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'task';
+      input.value = task.text;
+      input.placeholder = 'La chose qui compte vraiment';
+      input.setAttribute('aria-label', 'Priorité ' + (k + 1));
+      input.addEventListener('input', function () { task.text = input.value; save(); });
+
+      li.appendChild(check);
+      li.appendChild(input);
+      ol.appendChild(li);
+    });
+  }
+
+  function renderDeadlines() {
+    var t = today();
+    var ol = $('deadlines');
+    ol.innerHTML = '';
+    $('dl-empty').hidden = state.deadlines.length > 0;
+    var list = state.deadlines.slice().sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : 0; });
+    list.forEach(function (dl) {
+      var left = diff(t, dl.date);
+      var label = left < 0 ? 'En retard' : left === 0 ? 'Aujourd’hui' : left === 1 ? 'Demain' : left + ' jours';
+      var remaining = left < 0 ? 'en retard de ' + (-left) + (left === -1 ? ' jour' : ' jours')
+        : left === 0 ? 'c’est aujourd’hui'
+        : left === 1 ? 'reste 1 jour'
+        : 'restent ' + left + ' jours';
+
+      var li = document.createElement('li');
+      var pill = document.createElement('span');
+      pill.className = 'pill' + (left <= 3 ? ' soon' : '');
+      pill.textContent = label;
+
+      var text = document.createElement('span');
+      text.className = 'dl-text';
+      var title = document.createElement('span');
+      title.className = 'dl-title';
+      title.textContent = dl.title;
+      var date = document.createElement('span');
+      date.className = 'dl-date';
+      date.textContent = parse(dl.date).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) + ' · ' + remaining;
+      text.appendChild(title);
+      text.appendChild(date);
+
+      var del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'del';
+      del.setAttribute('aria-label', 'Marquer « ' + dl.title + ' » comme fait');
+      del.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg>';
+      del.addEventListener('click', function () {
+        if (li.classList.contains('leaving')) return;
+        burst(del.getBoundingClientRect(), ['🎯', '🏆', '✨', '🎉'], 28, 220);
+        toast(pick(['Échéance bouclée 🎯', 'Objectif atteint 🏆', 'Un de moins sur la liste 🎉']), true);
+        buzz([20, 50, 30]);
+        li.classList.add('leaving');
+        setTimeout(function () {
+          state.deadlines = state.deadlines.filter(function (x) { return x.id !== dl.id; });
+          save();
+          renderDeadlines();
+        }, reduce ? 0 : 480);
+      });
+
+      li.appendChild(pill);
+      li.appendChild(text);
+      li.appendChild(del);
+      ol.appendChild(li);
+    });
+  }
+
+  $('dl-form').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var title = $('dl-new-title').value.trim();
+    var date = $('dl-new-date').value;
+    if (!title || !date) return;
+    state.deadlines.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7), title: title, date: date });
+    save();
+    $('dl-form').reset();
+    $('dl-new-date').value = addDays(today(), 7);
+    renderDeadlines();
+    toast('Échéance ajoutée 📌');
+  });
+  // Date proposée par défaut : dans 7 jours (sur iPhone, un champ date vide est invisible)
+  $('dl-new-date').value = addDays(today(), 7);
+
+  $('validate').addEventListener('click', function () {
+    var b = $('validate');
+    replay(b, 'press');
+    toggleDay(today(), b.getBoundingClientRect());
+  });
+
+  // Quand tu rouvres l'appli (le lendemain par exemple), tout se met à jour.
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') { rollover(); renderDefi(); renderTasks(); renderDeadlines(); }
+  });
+
+  rollover();
+  renderDefi();
+  renderTasks();
+  renderDeadlines();
+})();
+</script>
+</body>
+</html>
