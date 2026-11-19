@@ -46,9 +46,11 @@
   }
   button.cell { cursor: pointer; }
   .cell.done { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-  .cell.today { background: var(--card); border-color: var(--accent); color: var(--accent); }
-  .cell.today.done { background: var(--accent); color: var(--on-accent); }
+  .cell.today { background: var(--card); border-color: var(--text); color: var(--text); }
+  .cell.today.done { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .cell.pending { background: var(--card); border: 2px dashed var(--accent); color: var(--accent); }
   .cell.missed { background: var(--bg); border-color: var(--line); color: var(--muted); }
+  .validate:disabled { cursor: default; border-color: var(--line); color: var(--muted); }
 
   .validate {
     margin-top: 22px; min-height: 52px; padding: 0 26px; border-radius: 12px; cursor: pointer;
@@ -338,7 +340,7 @@
     replay(document.getElementById('streak'), 'bump');
     var n = Math.min(30, Math.max(1, diff(START, d) + 1));
     var m = MILESTONES[streak];
-    if (m && d === today()) {
+    if (m && (d === today() || d === addDays(today(), -1))) {
       burst(rect, m[1], 36, 260);
       if (streak >= 7) rain(m[1], streak >= 30 ? 90 : 45);
       toast(m[0], true);
@@ -361,9 +363,12 @@
     $('date').textContent = raw.charAt(0).toUpperCase() + raw.slice(1);
     $('daycount').textContent = (idx + 1) + ' / 30';
 
-    // streak : jours validés d'affilée jusqu'à aujourd'hui (ou hier si aujourd'hui n'est pas encore validé)
+    // On valide le matin la journée (et la nuit) d'hier.
+    var y = addDays(t, -1);
+
+    // streak : jours validés d'affilée jusqu'à hier
     var streak = 0;
-    var d = isValidated(t) ? t : addDays(t, -1);
+    var d = isValidated(t) ? t : y;
     while (isValidated(d) && diff(START, d) >= 0) { streak++; d = addDays(d, -1); }
     $('streak').textContent = streak;
     $('streak-unit').textContent = streak > 1 ? 'jours d’affilée' : 'jour d’affilée';
@@ -375,25 +380,37 @@
       var past = diff(day, t) > 0;
       var isToday = day === t;
       var done = isValidated(day);
-      var el = document.createElement(past || isToday ? 'button' : 'div');
-      el.className = 'cell' + (done ? ' done' : '') + (isToday ? ' today' : '') + (past && !done ? ' missed' : '');
+      var el = document.createElement(past ? 'button' : 'div');
+      el.className = 'cell' + (done ? ' done' : '') + (isToday ? ' today' : '')
+        + (day === y && !done ? ' pending' : '')
+        + (past && !done && day !== y ? ' missed' : '');
       el.textContent = i + 1;
-      if (past || isToday) {
+      if (isToday) el.setAttribute('aria-label', 'Jour ' + (i + 1) + ', en cours');
+      if (past) {
         el.type = 'button';
         el.setAttribute('aria-pressed', done ? 'true' : 'false');
         el.setAttribute('aria-label', 'Jour ' + (i + 1) + (done ? ', validé' : ', non validé'));
         el.addEventListener('click', (function (dd) { return function (e) { toggleDay(dd, e.currentTarget.getBoundingClientRect()); }; })(day));
         if (popDay === day) el.classList.add('pop');
-      } else {
+      } else if (!isToday) {
         el.setAttribute('aria-hidden', 'true');
       }
       grid.appendChild(el);
     }
 
-    var v = isValidated(t);
     var btn = $('validate');
-    btn.setAttribute('aria-pressed', v ? 'true' : 'false');
-    btn.textContent = v ? 'Jour ' + (idx + 1) + ' validé 🔥' : 'Valider aujourd’hui';
+    var yIdx = diff(START, y);
+    if (yIdx < 0 || yIdx > 29) {
+      // Premier jour (ou après le défi) : rien à valider ce matin
+      btn.disabled = true;
+      btn.setAttribute('aria-pressed', 'false');
+      btn.textContent = yIdx < 0 ? 'Tu valideras le jour 1 demain matin ☀️' : 'Défi terminé 👑';
+    } else {
+      var v = isValidated(y);
+      btn.disabled = false;
+      btn.setAttribute('aria-pressed', v ? 'true' : 'false');
+      btn.textContent = v ? 'Jour ' + (yIdx + 1) + ' validé 🔥' : 'J’ai tenu hier · valider le jour ' + (yIdx + 1);
+    }
 
     var q = QUOTES[idx];
     $('quote').textContent = '« ' + q[0] + ' »';
@@ -521,8 +538,9 @@
 
   $('validate').addEventListener('click', function () {
     var b = $('validate');
+    if (b.disabled) return;
     replay(b, 'press');
-    toggleDay(today(), b.getBoundingClientRect());
+    toggleDay(addDays(today(), -1), b.getBoundingClientRect());
   });
 
   // Quand tu rouvres l'appli (le lendemain par exemple), tout se met à jour.
